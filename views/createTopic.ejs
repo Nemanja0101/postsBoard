@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>Create a New Topic</h1>
+
+    <% if (locals.errors && errors.length > 0) { %>
+        <ul>
+            <% errors.forEach(error => { %>
+                <li class="error"><%= error.msg %></li>
+            <% }) %>
+        </ul>
+    <% } %>
+
+    <form action="/topic/create" method="POST">
+        <div>
+            <label for="name">Topic Name</label>
+            <input type="text" id="name" name="name" required minlength="2" maxlength="50">
+
+            <select name="type" id="type">
+                <option value="public">public</option>
+                <option value="private">private</option>
+            </select>
+        </div>
+        
+        <button type="submit">Create Topic</button>
+        <a href="/">Cancel</a>
+    </form>
+</body>
+</html>

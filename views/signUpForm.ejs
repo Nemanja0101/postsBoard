@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    signup page
+
+
+    <form action="/signup" method="POST">
+      <label for="firstName">First Name</label>
+      <input type="text" id="firstName" name="firstName" />
+
+      <label for="lastName">Last Name</label>
+      <input type="text" id="lastName" name="lastName" />
+
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" />
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" />
+
+      <label for="confirmPassword">Confirm password</label>
+      <input type="password" id="confirmPassword" name="confirmPassword" />
+
+      <button type="submit">Sign up!</button>
+    </form>
+
+    <div>
+        <% if(errors && errors.length) { %>
+              <% errors.forEach(err => { %>
+
+                    <p><%= err.msg %></p>
+
+               <% })%>
+
+           <% } %>
+    </div>
+  </body>
+</html>
