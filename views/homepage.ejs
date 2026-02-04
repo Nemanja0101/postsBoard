@@ -4,11 +4,35 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <link rel="stylesheet" href="/css/output.css" />
   </head>
-  <body>
-    <h1>homepage</h1>
-    <a href="/signup">Sign up form</a>
-    <a href="/login">Log in form</a>
-    <a href="/topic/create">Create topic</a>
+  <body class="bg-zinc-900 text-white min-h-screen grid place-items-center">
+    <div
+      class="text-center space-y-4 flex flex-col items-center justify-center"
+    >
+      <h1 class="text-amber-500 text-8xl font-bold">Posts board</h1>
+
+      <h2 class="w-1/2 text-wrap text-center text-gray-300">
+        <% if(currentuser) {%>
+          Welcome <%= currentuser.username %>
+        <% }else{ %>
+          Welcome to a "Posts board" app made with express, ejs and tailwind for
+          practice purposes. Select one of the options below to continue
+          <% } %>
+      
+      </h2>
+      <div>
+          <a class="btn-link" href="/topic/main">Browse topics</a>
+        <% if(!currentuser) {%>
+          <a class="btn-link" href="/signup">Sign up</a>
+          <a class="btn-link" href="/login">Log in</a>
+        <% }else{ %>
+          <a class="btn-link" href="/topic/create">Create topic</a>
+          <form action="/logout" method="post" class="inline">
+            <button type="submit" class="btn-link hover:cursor-pointer">Logout</button>
+          </form>
+          <% } %>
+      </div>
+    </div>
   </body>
 </html>

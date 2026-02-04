@@ -27,4 +27,35 @@ async function createNewTopic(name, type, adminId) {
   }
 }
 
-module.exports = { createNewTopic };
+async function getAllPublicTopics() {
+  const { rows } = await db.query(`
+    SELECT *
+    FROM topics
+    WHERE type = 'public'
+    ORDER BY name ASC
+  `);
+  return rows;
+}
+
+async function getAllPrivateTopics() {
+  const { rows } = await db.query(
+    "SELECT id, name, type FROM topics WHERE type='private'",
+  );
+  return rows;
+}
+
+async function fetchPostsForTopics(idsToFetchPosts) {
+  const { rows } = await db.query(
+    "SELECT * FROM posts WHERE topic_id = ANY($1::uuid[]) ORDER BY created_at DESC",
+    [idsToFetchPosts],
+  );
+
+  return rows;
+}
+
+module.exports = {
+  createNewTopic,
+  getAllPublicTopics,
+  getAllPrivateTopics,
+  fetchPostsForTopics,
+};

@@ -4,31 +4,43 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <link rel="stylesheet" href="/css/output.css" />
+
   </head>
-  <body>
-    <h1>Create a New Topic</h1>
+    <body class="bg-zinc-900 text-white min-h-screen grid place-items-center ">
+        <div class="flex flex-col items-center gap-6">
+            <h1 class="text-amber-500 text-6xl font-bold">Create a New Topic</h1>
 
-    <% if (locals.errors && errors.length > 0) { %>
-        <ul>
-            <% errors.forEach(error => { %>
-                <li class="error"><%= error.msg %></li>
-            <% }) %>
-        </ul>
-    <% } %>
+            <div class="grid grid-cols-3 gap-4">
 
-    <form action="/topic/create" method="POST">
-        <div>
-            <label for="name">Topic Name</label>
-            <input type="text" id="name" name="name" required minlength="2" maxlength="50">
+                <form action="/topic/create" method="POST" class="bg-gray-800 flex 
+                flex-col px-8 py-12 rounded-lg 
+                w-96 gap-3 col-start-2 col-span-1">
+                    <div class="flex flex-col gap-4 mb-4">
+                        <label for="name" class="label">Topic Name</label>
+                        <input type="text" id="name" name="name" required minlength="2" maxlength="50" class="input">
 
-            <select name="type" id="type">
-                <option value="public">public</option>
-                <option value="private">private</option>
-            </select>
+                        <select name="type" id="type" class="bg-gray-700 open:bg-gray-700 py-2 rounded-md">
+                            <option value="public">public</option>
+                            <option value="private">private</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn-link">Create Topic</button>
+                    <a href="/" class="text-center">Cancel</a>
+                </form>
+
+
+               <div class="col-start-3 col-span-1">
+                <% if (locals.errors && errors.length > 0) { %>
+                        <ul>
+                            <% errors.forEach(error => { %>
+                                <li class="error"><%= error.msg %></li>
+                            <% }) %>
+                        </ul>
+                    <% } %>
+               </div>
+            </div>
         </div>
-        
-        <button type="submit">Create Topic</button>
-        <a href="/">Cancel</a>
-    </form>
 </body>
 </html>

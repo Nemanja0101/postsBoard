@@ -4,39 +4,46 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <link rel="stylesheet" href="/css/output.css" />
   </head>
-  <body>
-    signup page
+  <body class="bg-zinc-900 text-white min-h-screen grid place-items-center ">
+   
 
+    <div class="flex flex-col items-center gap-6">
+      <h1 class="text-amber-500 text-6xl font-bold">Sign up</h1>
 
-    <form action="/signup" method="POST">
-      <label for="firstName">First Name</label>
-      <input type="text" id="firstName" name="firstName" />
+      <div class="grid grid-cols-3 gap-4">
 
-      <label for="lastName">Last Name</label>
-      <input type="text" id="lastName" name="lastName" />
+        <form action="/signup" method="POST" class="bg-gray-800 flex flex-col px-8 py-6 rounded-lg w-96 gap-3 col-start-2 col-span-1">
+          <label for="firstName" class="label">First Name</label>
+          <input type="text" id="firstName" name="firstName"  class="input"/>
 
-      <label for="username">Username</label>
-      <input type="text" id="username" name="username" />
+          <label for="lastName"  class="label">Last Name</label>
+          <input type="text" id="lastName" name="lastName" class="input"/>
 
-      <label for="password">Password</label>
-      <input type="password" id="password" name="password" />
+          <label for="username"  class="label">Username</label>
+          <input type="text" id="username" name="username" class="input" />
 
-      <label for="confirmPassword">Confirm password</label>
-      <input type="password" id="confirmPassword" name="confirmPassword" />
+          <label for="password"  class="label">Password</label>
+          <input type="password" id="password" name="password"  class="input"/>
 
-      <button type="submit">Sign up!</button>
-    </form>
+          <label for="confirmPassword"  class="label">Confirm password</label>
+          <input type="password" id="confirmPassword" name="confirmPassword" class="input" />
 
-    <div>
-        <% if(errors && errors.length) { %>
-              <% errors.forEach(err => { %>
+          <button type="submit" class="btn-link hover:cursor-pointer">Sign up!</button>
+        </form>
 
-                    <p><%= err.msg %></p>
+        <div class="col-start-3 col-span-1">
+            <% if(errors && errors.length) { %>
+                  <% errors.forEach(err => { %>
 
-               <% })%>
+                        <p><%= err.msg %></p>
 
-           <% } %>
+                  <% })%>
+
+              <% } %>
+        </div>
+      </div>
     </div>
   </body>
 </html>

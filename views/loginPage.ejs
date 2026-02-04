@@ -4,25 +4,39 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <link rel="stylesheet" href="/css/output.css" />
+
   </head>
-  <body>
-    <form action="/login" method="POST">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" />
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" />
-    <button type="submit">Log in</button>
-    </form>
+  <body class="bg-zinc-900 text-white min-h-screen grid place-items-center ">
+
+     <div class="flex flex-col items-center gap-6">
+      <h1 class="text-amber-500 text-6xl font-bold">Log in</h1>
+
+      <div class="grid grid-cols-3 gap-4">
+
+        <form action="/login" method="POST" class="bg-gray-800 flex flex-col px-8 py-12 rounded-lg w-96 gap-3 col-start-2 col-span-1">
+          <label for="username" class="label text-2xl">Username:</label>
+          <input type="text" id="username" name="username" class="input"/>
+          <label for="password" class="label text-2xl">Password:</label>
+          <input type="password" id="password" name="password" class="input" />
+          <button type="submit" 
+           class="
+           bg-gray-700 hover:bg-slate-900
+           text-white font-bold text-3xl py-4 px-5 
+           rounded inline-block text-center hover:cursor-pointer">Log in</button>
+        </form>
  
+        <div class="col-start-3 col-span-1">
+          <% if(errors && errors.length) { %>
+                  <% errors.forEach(err => { %>
 
+                        <p><%= err.msg %></p>
 
-       <% if(errors && errors.length) { %>
-              <% errors.forEach(err => { %>
+                  <% })%>
 
-                    <p><%= err.msg %></p>
-
-               <% })%>
-
-        <% } %>
+            <% } %>
+        </div>
+      </div>
+     </div>
   </body>
 </html>

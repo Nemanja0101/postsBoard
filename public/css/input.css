@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+  /* This replaces the 'theme: { extend: { ... } }' block */
+  --color-element: #121063;
+}
+
+.btn-link {
+  @apply bg-gray-700 hover:bg-slate-900 text-white font-bold text-2xl py-3 px-5 rounded inline-block text-center;
+}
+
+.label {
+  @apply text-gray-300 text-start;
+}
+
+.input {
+  @apply py-1 w-full bg-gray-700 rounded-md text-lg;
+}

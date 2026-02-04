@@ -46,6 +46,43 @@ const createTopic = [
   },
 ];
 
+async function renderMainTopicsPage(req, res) {
+  // get all public topics
+  const publicRows = await topicQuery.getAllPublicTopics();
+
+  const idsToFetchPosts = [
+    publicRows[0].id,
+    publicRows[1].id,
+    publicRows[2].id,
+    publicRows[3].id,
+  ];
+
+  const postsForTopics = await topicQuery.fetchPostsForTopics(idsToFetchPosts);
+
+  const postsByTopicId = {};
+
+  for (const post of postsForTopics) {
+    if (!postsByTopicId[post.topic_id]) {
+      postsByTopicId[post.topic_id] = [];
+    }
+    postsByTopicId[post.topic_id].push(post);
+  }
+
+  //ensures topics that don't have posts get their id passed onto to template
+  const displayTopics = {};
+  for (const topic of publicRows.slice(0, 4)) {
+    displayTopics[topic.id] = postsByTopicId[topic.id] ?? [];
+  }
+
+  const privateRows = await topicQuery.getAllPrivateTopics();
+
+  res.render("posts", {
+    publicTopics: publicRows,
+    privateTopics: privateRows,
+    displayTopics: displayTopics,
+  });
+}
+
 // function createTopic(req, res) {};
 
-module.exports = { renderCreateTopicForm, createTopic };
+module.exports = { renderCreateTopicForm, createTopic, renderMainTopicsPage };
