@@ -53,9 +53,57 @@ async function fetchPostsForTopics(idsToFetchPosts) {
   return rows;
 }
 
+async function searchPublicTopics(name) {
+  const { rows } = await db.query(
+    `
+    SELECT *
+    FROM topics
+    WHERE name ILIKE '%' || $1 || '%'
+      AND type = 'public'
+    `,
+    [name],
+  );
+
+  return rows;
+}
+
+async function searchPrivateTopics(name) {
+  const { rows } = await db.query(
+    `SELECT * 
+    FROM topics 
+    WHERE name ILIKE '%' || $1 || '%'
+       AND type = 'private'`,
+    [name],
+  );
+
+  return rows;
+}
+
+async function getSingleTopicWithData(topicId) {
+  const { rows } = await db.query(
+    `SELECT name, type, user_id, p.id, username, title, content, p.created_at  
+    FROM topics t 
+    JOIN 
+      topics_users tu ON t.id = tu.topic_id 
+    JOIN
+      posts p ON t.id = p.topic_id
+    JOIN 
+      users u ON p.author_id = u.id
+    WHERE t.id = $1`,
+    [topicId],
+  );
+
+  console.log(rows);
+
+  return rows;
+}
+
 module.exports = {
   createNewTopic,
   getAllPublicTopics,
   getAllPrivateTopics,
   fetchPostsForTopics,
+  searchPublicTopics,
+  searchPrivateTopics,
+  getSingleTopicWithData,
 };

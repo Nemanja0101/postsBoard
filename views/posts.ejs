@@ -6,14 +6,14 @@
     <title>Document</title>
     <link rel="stylesheet" href="/css/output.css" />
   </head>
-  <body class="bg-zinc-900 text-white min-h-screen pt-5 ">
+  <body class="bg-zinc-900 text-white min-h-screen pt-5 px-4 ">
     <h1 class="text-amber-500 text-6xl font-bold w-full text-center">Topics and posts</h1>
 
     <!-- public topics cards -->
     <section aria-label="public topics display" class="flex flex-col mt-7"> 
         <h2 class="text-amber-500 text-4xl font-bold mb-7 pl-5">Public topics</h2>
 
-        <div class="grid grid-cols-4 gap-4 w-full px-6">
+        <div class="grid grid-cols-4 gap-4 w-full px-2">
             <% publicTopics.slice(0,4).forEach(t => { %>
             <div aria-label="conversation card"
                 class="text-center bg-gray-800 rounded-lg px-3 py-5 flex flex-col gap-4">
@@ -39,64 +39,60 @@
             <% }) %>
         </div>
 
-         <button 
-         id="openPublicModal"
-         class="bg-gray-800 hover:bg-gray-700 
-         hover:cursor-pointer text-center mt-2 
-         mx-6 py-1 text-3xl font-bold rounded-lg">
-          + 
-        </button>
+       
+        <form action="/topic/all" method="get">
+            <button 
+            class="bg-gray-800 hover:bg-gray-700 
+            hover:cursor-pointer text-center mt-2 
+            py-3 text-xl font-bold rounded-lg w-full">
+            All public topics 
+            </button>
+        </form>
 
     </section>
 
-    <div id="modal" class="hidden fixed inset-0 bg-neutral-950/90 flex items-center justify-center">
-        <div class="bg-gray-800 p-6 rounded shadow-lg">
-            <h2 class="text-xl font-bold mb-4">Browse all public topics</h2>
-            <ul>
-                <% if(publicTopics != undefined || publicTopics != null) { %>
-                <% publicTopics.forEach(t => { %>
+    <% if(currentuser) { %>
 
-                    <li>
-                        <a href="/topic/<%=t.id%>"><%= t.name %></a>
-                    </li>
+        <h2 class="text-amber-500 text-4xl font-bold mb-7 pl-5 mt-7">Private topics</h2>
 
-                <% })%>
-                <% }%>
-            </ul>
-            <button id="closeModal" class="mt-4 bg-red-500 px-4 py-2 rounded">Close</button>
-        </div>
-    </div>
+        <% if(privateTopics && privateTopics.length > 0) {%>
 
-    <h2 class="text-amber-500 text-4xl font-bold mb-7 pl-5 mt-7">Private topics</h2>
-
-    <% if(privateTopics && privateTopics.length > 0) {%>
-
-        <section 
-            aria-label="private topics display"
-            class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-6"
-            >
-            <% privateTopics.forEach(t => { %>
-                <a 
-                href="/topic/<%= t.id %>"
-                class="bg-gray-800 rounded-lg px-4 py-3 
-                        hover:bg-gray-700 transition
-                        border border-gray-700
-                        text-slate-200 font-medium"
+            <section 
+                aria-label="private topics display"
+                class="flex flex-col gap-2"
                 >
-                    <%= t.name %>
-                </a>
-            <% }) %>
-  
-        </section>
-    <%}%>
+                <div class="grid grid-cols-4 gap-4 w-full px-6">
+                    <% privateTopics.forEach(t => { %>
+                        <a 
+                        href="/topic/<%= t.id %>"
+                        class="bg-gray-800 rounded-lg px-4 py-3 
+                                hover:bg-gray-700 transition
+                                border border-gray-700
+                                text-slate-200 font-medium"
+                        >
+                            <%= t.name %>
+                        </a>
+                    <% }) %>
+                </div>
+    
+            <form action="/topic/all/private" method="get">
+                <button 
+                    class="bg-gray-800 hover:bg-gray-700 
+                    hover:cursor-pointer text-center mt-2 
+                    py-3 text-xl font-bold rounded-lg w-full">
+                    All private topics 
+                </button>
+            </form>
+            </section>
+        <%}%>
+
+     
+    <%}else{%>
+        
+        <p class="pl-5 text-amber-400 text-center mt-10">Log in to see avaliable private topics</p>
+
+    <% }%>
   </body>
 
-  <script>
-    const openModal = document.getElementById("openPublicModal");
-    const closeModal = document.getElementById("closeModal");
-    const modal = document.getElementById("modal");
 
-    openModal.addEventListener("click", () => modal.classList.remove("hidden"));
-    closeModal.addEventListener("click", () => modal.classList.add("hidden"));
-    </script>
 </html>

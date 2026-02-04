@@ -83,6 +83,80 @@ async function renderMainTopicsPage(req, res) {
   });
 }
 
+function renderTopicsSearchPage(req, res) {
+  const privateMode = req.params.private === "private";
+  const mode = privateMode ? true : false;
+
+  res.render("searchTopic", { errors: [], mode: mode });
+}
+
 // function createTopic(req, res) {};
 
-module.exports = { renderCreateTopicForm, createTopic, renderMainTopicsPage };
+async function searchTopics(req, res) {
+  const { name, private: privateParam } = req.query;
+
+  const isPrivate = privateParam === "true";
+
+  const results = isPrivate
+    ? await topicQuery.searchPrivateTopics(name)
+    : await topicQuery.searchPublicTopics(name);
+
+  res.render("searchTopic", {
+    errors: [],
+    mode: isPrivate,
+    searchResults: results,
+  });
+}
+
+async function renderSingleTopic(req, res) {
+  try {
+    const { topicId, topicType } = req.params;
+    const currentUserId = req.user?.id;
+
+    const data = await topicQuery.getSingleTopicWithData(topicId);
+
+    if (!data || data.length === 0) {
+      return res.status(404).render("topic", { errors: ["Topic not found"] });
+    }
+
+    const usersList = data.map((row) => row.user_id);
+    const userInList = usersList.includes(currentUserId);
+
+    let postsList = [];
+
+    if (topicType === "public" || userInList) {
+      postsList = data.map((row) => ({
+        author: row.username,
+        title: row.title,
+        content: row.content,
+        timestamp: row.created_at,
+      }));
+    } else {
+      return res.status(403).render("topic", { errors: ["Access denied"] });
+    }
+
+    const allDataForTopic = {
+      name: data[0].name,
+      participants: usersList,
+      type: data[0].type,
+    };
+
+    res.render("topic", {
+      topic: allDataForTopic,
+      posts: postsList,
+      errors: [],
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).render("topic", { errors: ["Server error"] });
+  }
+}
+
+module.exports = {
+  renderCreateTopicForm,
+  createTopic,
+  renderMainTopicsPage,
+  renderTopicsSearchPage,
+  searchTopics,
+  renderSingleTopic,
+};
