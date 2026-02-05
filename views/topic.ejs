@@ -14,7 +14,53 @@
 
     <div class="text-amber-500 text-6xl font-bold text-center">No topic selected</div>
 
-  <% }%>
+  <% }else {%>
+
+
+    <div class="text-amber-500 text-6xl font-bold text-center "><%= topic.name %></div>
+    
+    <div class="grid grid-cols-6 gap-3 p-8">
+
+      <section aria-label="user controls col-span-1">
+
+        <% if(topic.topicType === 'public' || (topic.topicType === 'private' && (topic.userMembership === 'admin' || topic.userMembership ==='member'))){  %>
+
+          
+          <a href="/post/new" class="btn-link">Make a new post</a>
+
+          <% }%>
+      </section>
+
+      <section class="bg-gray-800 rounded-lg py-7 px-6 flex flex-col gap-4 col-span-4 col-start-2 col-end-6">
+
+        <% topic.posts.forEach(post => { %>
+
+          <article aria-label="single post" class="bg-gray-700 rounded-lg py-2 px-3">
+            <p class="font-bold text-xl"><%= post.title %></p>
+            <p class="py-2"><%= post.content %></p>
+            <p><%= post.post_created_at %></p>
+          </article>
+          
+        <% }) %>
+      </section>
+
+      <section class="col-span-1 bg-gray-800 py-2 px-5 flex flex-col gap-2">
+        <h1 class="text-amber-500 font-bold">Members</h1>
+        <% topic.members.forEach(member => { %>
+
+          <article aria-label="one member" class="bg-gray-700 rounded-lg py-2 px-3">
+           <p><%= member.username %></p>
+           <p class="text-sm text-gray-400"><%= member.status %></p>
+          </article>
+        <% }) %>
+
+      </section>
+
+    </div>
+
+
+
+    <% }%>
 
 </body>
 </html>

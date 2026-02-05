@@ -113,38 +113,107 @@ async function renderSingleTopic(req, res) {
     const { topicId, topicType } = req.params;
     const currentUserId = req.user?.id;
 
-    const data = await topicQuery.getSingleTopicWithData(topicId);
+    let data;
+    let topic;
+    let userIsMember;
 
-    if (!data || data.length === 0) {
-      return res.status(404).render("topic", { errors: ["Topic not found"] });
+    const posts = [];
+    const members = [];
+
+    if (topicType === "private" && !currentUserId) {
+      return res.status(401).render("topic", { errors: ["Login required"] });
     }
 
-    const usersList = data.map((row) => row.user_id);
-    const userInList = usersList.includes(currentUserId);
+    if (topicType === "public") {
+      data = await topicQuery.getSingleTopicWithData(topicId);
 
-    let postsList = [];
+      if (!data || data.length === 0) {
+        return res.status(404).render("topic", { errors: ["Topic not found"] });
+      }
 
-    if (topicType === "public" || userInList) {
-      postsList = data.map((row) => ({
-        author: row.username,
-        title: row.title,
-        content: row.content,
-        timestamp: row.created_at,
-      }));
-    } else {
-      return res.status(403).render("topic", { errors: ["Access denied"] });
+      for (const obj of data) {
+        if (obj.post_id && !posts[obj.post_id]) {
+          posts[obj.post_id] = {
+            id: obj.post_id,
+            title: obj.post_title,
+            content: obj.post_content,
+            post_created_at: obj.post_created_at,
+          };
+        }
+
+        if (obj.member_id && !members[obj.member_id]) {
+          members[obj.member_id] = {
+            id: obj.member_id,
+            username: obj.member_username,
+            status: obj.member_status,
+          };
+        }
+      }
+
+      topic = {
+        id: data[0].id,
+        name: data[0].name,
+        type: data[0].type,
+        posts: Object.values(posts),
+        members: Object.values(members),
+        userMembership: data[0].user_status,
+        topicType: data[0].type,
+      };
+    } else if (topicType === "private") {
+      data = await topicQuery.getPrivateSingleTopic(topicId, currentUserId);
+
+      if (!data || data.length === 0) {
+        return res.status(404).render("topic", { errors: ["Topic not found"] });
+      }
+
+      if (data[0].user_status) {
+        // user is a member
+
+        for (const obj of data) {
+          if (obj.post_id && !posts[obj.post_id]) {
+            posts[obj.post_id] = {
+              id: obj.post_id,
+              title: obj.post_title,
+              content: obj.post_content,
+              post_created_at: obj.post_created_at,
+            };
+          }
+
+          if (obj.member_id && !members[obj.member_id]) {
+            members[obj.member_id] = {
+              id: obj.member_id,
+              username: obj.member_username,
+              status: obj.member_status,
+            };
+          }
+        }
+
+        topic = {
+          id: data[0].id,
+          name: data[0].name,
+          type: data[0].type,
+          posts: Object.values(posts),
+          members: Object.values(members),
+          userMembership: data[0].user_status,
+          topicType: data[0].type,
+        };
+      } else {
+        topic = {
+          id: data[0].id,
+          name: data[0].name,
+          type: data[0].type,
+          posts: [],
+          members: [],
+          userMembership: data[0].user_status,
+          topicType: data[0].type,
+        };
+      }
     }
 
-    const allDataForTopic = {
-      name: data[0].name,
-      participants: usersList,
-      type: data[0].type,
-    };
+    console.log(topic);
 
     res.render("topic", {
-      topic: allDataForTopic,
-      posts: postsList,
-      errors: [],
+      topic: topic,
     });
   } catch (err) {
     console.error(err);
