@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel - <%= topic.tname %></title>
+    <link rel="stylesheet" href="/css/output.css" />
+</head>
+<body class="bg-zinc-900 text-white min-h-screen pt-12">
+
+    <% if(!locals.topic) { %>
+        <div class="text-amber-500 text-6xl font-bold text-center">No topic selected</div>
+    <% } else { %>
+
+        <header class="text-center mb-10">
+            <h1 class="text-amber-500 text-6xl font-bold"><%= topic.tname %></h1>
+            <p class="text-gray-400 mt-2 uppercase tracking-widest text-sm">
+                Admin Control Panel • <span class="text-amber-600"><%= topic.ttype %></span>
+            </p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-6 px-8 pb-12">
+
+            <section class="lg:col-span-3 bg-gray-800 rounded-lg p-6 flex flex-col gap-4 border-t-4 border-amber-500">
+                <h2 class="text-amber-500 font-bold text-xl flex items-center gap-2">
+                    Pending Requests
+                    <span class="bg-amber-500 text-zinc-900 text-xs px-2 py-0.5 rounded-full">
+                        <%= topic.requests.length %>
+                    </span>
+                </h2>
+                
+                <div class="flex flex-col gap-3">
+                    <% if(topic.requests.length === 0) { %>
+                        <p class="text-gray-500 italic text-sm">No pending requests at the moment.</p>
+                    <% } else { %>
+                        <% topic.requests.forEach(request => { %>
+                            <article class="bg-gray-700 rounded-lg p-3 border border-gray-600">
+                                <p class="font-semibold mb-2"><%= request.username %></p>
+                                <div class="flex gap-2">
+                                    <form action="/topic/admin/approve" method="POST" class="flex-1">
+                                        <input type="hidden" name="requestId" value="<%= request.request_id %>">
+                                        <input type="hidden" name="topicId" value="<%= topic.id %>">
+                                        <button class="w-full bg-green-800 hover:cursor-pointer hover:bg-green-600 text-white text-xs py-1 font-bold rounded transition">Approve</button>
+                                    </form>
+                                    <form action="/topic/admin/deny" method="POST" class="flex-1">
+                                        <input type="hidden" name="requestId" value="<%= request.request_id %>">
+                                        <input type="hidden" name="topicId" value="<%= topic.id %>">
+                                        <button class="w-full hover:cursor-pointer bg-red-800 hover:bg-red-600 text-white text-xs font-bold py-1 rounded transition">Deny</button>
+                                    </form>
+                                </div>
+                            </article>
+                        <% }) %>
+                    <% } %>
+                </div>
+            </section>
+
+            <section class="lg:col-span-6 bg-gray-800 rounded-lg p-6 flex flex-col gap-4">
+                <h2 class="text-amber-500 font-bold text-xl">Manage Posts</h2>
+                
+                <div class="flex flex-col gap-4">
+                    <% topic.posts.forEach(post => { %>
+                        <article class="bg-gray-700 rounded-lg p-4 relative group border border-transparent hover:border-amber-500/30 transition">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="font-bold text-lg text-amber-100"><%= post.title %></h3>
+                                    <p class="text-gray-300 text-sm mt-1 line-clamp-2"><%= post.content %></p>
+                                    <p class="text-[10px] text-gray-500 mt-3 uppercase tracking-tighter">
+                                        Created: <%= new Date(post.created_at).toLocaleString() %>
+                                    </p>
+                                </div>
+                                <button class="text-gray-500 hover:text-red-500 transition-colors">
+                                    Delete
+                                </button>
+                            </div>
+                        </article>
+                    <% }) %>
+                </div>
+            </section>
+
+            <section class="lg:col-span-3 bg-gray-800 rounded-lg p-6 flex flex-col gap-4 border-b-4 border-amber-500">
+                <h2 class="text-amber-500 font-bold text-xl">Members</h2>
+                <div class="flex flex-col gap-2">
+                    <% topic.members.forEach(member => { %>
+                        <div class="bg-gray-700 rounded-lg py-2 px-3 flex justify-between items-center border border-gray-600">
+                            <div>
+                                <p class="text-sm font-medium"><%= member.username %></p>
+                                <p class="text-[10px] uppercase text-amber-600 font-bold"><%= member.status %></p>
+                            </div>
+                            <% if(member.status !== 'admin') { %>
+                                <button class="text-gray-500 hover:text-amber-500 text-xs">Edit</button>
+                            <% } %>
+                        </div>
+                    <% }) %>
+                </div>
+            </section>
+
+        </main>
+    <% } %>
+
+</body>
+</html>

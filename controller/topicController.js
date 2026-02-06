@@ -117,8 +117,8 @@ async function renderSingleTopic(req, res) {
     let topic;
     let userIsMember;
 
-    const posts = [];
-    const members = [];
+    const posts = {};
+    const members = {};
 
     if (topicType === "private" && !currentUserId) {
       return res.status(401).render("topic", { errors: ["Login required"] });
@@ -210,7 +210,7 @@ async function renderSingleTopic(req, res) {
       }
     }
 
-    console.log(topic);
+    // console.log(topic);
 
     res.render("topic", {
       topic: topic,
@@ -221,6 +221,194 @@ async function renderSingleTopic(req, res) {
   }
 }
 
+async function renderAdminPanel(req, res) {
+  const topicId = req.params.topicId;
+  const currentUserId = req.user?.id;
+
+  if (!currentUserId) {
+    return res.status(401).render("adminPanel", {
+      errors: ["Log in required"],
+    });
+  }
+
+  const isAdmin = await topicQuery.userIsAdmin(topicId, currentUserId);
+
+  if (!isAdmin) {
+    return res.status(403).render("adminPanel", {
+      errors: ["You are not an admin for this topic!"],
+    });
+  }
+
+  // const posts = {};
+  // const members = {};
+  // const requests = {};
+
+  const data = await topicQuery.getSingleTopicWithDataAdmin(
+    topicId,
+    currentUserId,
+  );
+
+  if (!data || data.length === 0) {
+    return res
+      .status(404)
+      .render("adminPanel", { errors: ["Topic not found"] });
+  }
+
+  const topic = {
+    id: data.id,
+    tname: data.name,
+    ttype: data.type,
+    posts: data.posts,
+    members: data.members,
+    requests: data.requests,
+  };
+
+  res.render("adminPanel", { topic: topic, errors: [] });
+}
+
+async function requestJoin(req, res) {
+  const topicId = req.params.topicId;
+  const currentUserId = req.user?.id;
+  //insert values
+
+  try {
+    const isInserted = await topicQuery.insertJoinReq(topicId, currentUserId);
+  } catch (error) {
+    console.log("Logging an error:");
+    console.log(error);
+
+    if ((error.code = "23505")) {
+      return res.status(400).render("topic.ejs", {
+        topic: null,
+        errors: [
+          "You have already sent a request to join this topic. Please wait for admin approval.",
+        ],
+      });
+    }
+
+    console.error("Unexpected error occured:", err);
+    res.status(500).render("adminPanel", {
+      topic: null,
+      errors: ["Something went wrong. Please try again later."],
+    });
+  }
+}
+
+async function approveRequest(req, res) {
+  const requestId = req.body.requestId;
+  const topicId = req.body.topicId;
+  const currentUserId = req.user?.id;
+
+  if (!currentUserId) {
+    return res.status(401).render("adminPanel", {
+      errors: ["Log in required"],
+    });
+  }
+
+  try {
+    const userIsAdmin = await topicQuery.userIsAdmin(topicId, currentUserId);
+
+    if (!userIsAdmin) {
+      return res.status(403).render("adminPanel", {
+        errors: ["You are not an admin for this topic!"],
+      });
+    }
+
+    const isInserted = await topicQuery.approveReq(
+      requestId,
+      topicId,
+      currentUserId,
+    );
+
+    if (isInserted) {
+      const data = await topicQuery.getSingleTopicWithDataAdmin(
+        topicId,
+        currentUserId,
+      );
+
+      if (!data || data.length === 0) {
+        return res
+          .status(404)
+          .render("adminPanel", { errors: ["Topic not found"] });
+      }
+
+      const topic = {
+        id: data.id,
+        tname: data.name,
+        ttype: data.type,
+        posts: data.posts,
+        members: data.members,
+        requests: data.requests,
+      };
+      res.render("adminPanel", { topic: topic, errors: [] });
+    }
+  } catch (error) {
+    console.error("Unexpected error occured:", err);
+    res.status(500).render("adminPanel", {
+      topic: null,
+      errors: ["Something went wrong. Please try again later."],
+    });
+  }
+}
+
+async function denyRequest(req, res) {
+  const requestId = req.body.requestId;
+  const topicId = req.body.topicId;
+  const currentUserId = req.user?.id;
+
+  if (!currentUserId) {
+    return res.status(401).render("adminPanel", {
+      errors: ["Log in required"],
+    });
+  }
+
+  try {
+    const userIsAdmin = await topicQuery.userIsAdmin(topicId, currentUserId);
+
+    if (!userIsAdmin) {
+      return res.status(403).render("adminPanel", {
+        errors: ["You are not an admin for this topic!"],
+      });
+    }
+
+    const wasDeleted = await topicQuery.denyReq(requestId);
+
+    if (!wasDeleted) {
+      return res.status(404).render("adminPanel", {
+        errors: ["Request not found or already handled"],
+      });
+    }
+
+    const data = await topicQuery.getSingleTopicWithDataAdmin(
+      topicId,
+      currentUserId,
+    );
+
+    if (!data || data.length === 0) {
+      return res
+        .status(404)
+        .render("adminPanel", { errors: ["Topic not found"] });
+    }
+
+    const topic = {
+      id: data.id,
+      tname: data.name,
+      ttype: data.type,
+      posts: data.posts,
+      members: data.members,
+      requests: data.requests,
+    };
+
+    res.render("adminPanel", { topic, errors: [] });
+  } catch (err) {
+    console.error("Unexpected error occurred:", err);
+    res.status(500).render("adminPanel", {
+      topic: null,
+      errors: ["Something went wrong. Please try again later."],
+    });
+  }
+}
+
 module.exports = {
   renderCreateTopicForm,
   createTopic,
@@ -228,4 +416,8 @@ module.exports = {
   renderTopicsSearchPage,
   searchTopics,
   renderSingleTopic,
+  renderAdminPanel,
+  requestJoin,
+  approveRequest,
+  denyRequest,
 };
