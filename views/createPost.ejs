@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="/css/output.css" />
+
+  </head>
+  <body class="bg-zinc-900 text-white min-h-screen pt-12">
+
+     <div class="flex flex-col items-center gap-6">
+            <h1 class="text-amber-500 text-6xl font-bold">Create a new post</h1>
+
+            <% if(locals.topicId){ %>
+
+            <div class="">
+
+                <form action="/post/create" method="POST" class="bg-gray-800 flex 
+                flex-col px-8 py-12 rounded-lg 
+                 gap-3 col-start-2 col-span-1
+                 border-t-4 border-amber-500">
+                    <div class="flex flex-col gap-4 mb-4">
+                        <label for="name" class="text-2xl text-amber-500 font-bold">TITLE</label>
+                        <input type="text" id="title" name="title" required minlength="2" maxlength="50" class="input">
+
+                        <input type="hidden" value="<%= locals.topicId %>" name="topicId">
+                        
+                        <label for="content" class="text-2xl text-amber-500 font-bold">CONTENT</label>
+                        <textarea name="content" id="content" rows="10" class="w-240 bg-gray-700 "></textarea>
+
+                        <input type="hidden" name="postId" id="postId" value="<%=locals.topicId %>">
+                        <input type="hidden" name="type" id="type" value="<%= locals.topicType %>">
+                    </div>
+                    
+                    <button type="submit" class="btn-link hover:cursor-pointer">Create Post</button>
+                    <a href="/" class="text-center">Cancel</a>
+                </form>
+
+
+               <div class="col-start-3 col-span-1">
+                <% if (locals.errors && errors.length > 0) { %>
+                        <ul>
+                            <% errors.forEach(error => { %>
+                                <li class="error"><%= error.msg %></li>
+                            <% }) %>
+                        </ul>
+                    <% } %>
+               </div>
+            </div>
+
+         
+        </div>
+
+        <%}else{ %>
+
+            <p class="font-bold text-amber-500">No topic id was provided</p>
+
+        <%} %>
+
+
+  </body>
+</html>

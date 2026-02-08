@@ -125,7 +125,7 @@ async function renderSingleTopic(req, res) {
     }
 
     if (topicType === "public") {
-      data = await topicQuery.getSingleTopicWithData(topicId);
+      data = await topicQuery.getSingleTopicWithData(topicId, currentUserId);
 
       if (!data || data.length === 0) {
         return res.status(404).render("topic", { errors: ["Topic not found"] });
@@ -150,11 +150,13 @@ async function renderSingleTopic(req, res) {
         }
       }
 
+      const newposts = Object.values(posts).reverse();
+
       topic = {
         id: data[0].id,
         name: data[0].name,
         type: data[0].type,
-        posts: Object.values(posts),
+        posts: newposts,
         members: Object.values(members),
         userMembership: data[0].user_status,
         topicType: data[0].type,
@@ -188,11 +190,16 @@ async function renderSingleTopic(req, res) {
           }
         }
 
+        const newposts = Object.values(posts).reverse();
+
+        console.log("reverseD:");
+        console.log(newposts);
+
         topic = {
           id: data[0].id,
           name: data[0].name,
           type: data[0].type,
-          posts: Object.values(posts),
+          posts: newposts,
           members: Object.values(members),
           userMembership: data[0].user_status,
           topicType: data[0].type,
@@ -210,7 +217,7 @@ async function renderSingleTopic(req, res) {
       }
     }
 
-    // console.log(topic);
+    console.log(topic);
 
     res.render("topic", {
       topic: topic,
@@ -409,6 +416,30 @@ async function denyRequest(req, res) {
   }
 }
 
+async function joinTopic(req, res) {
+  const uid = req.user?.id;
+  const tid = req.body.topicId;
+
+  try {
+    const entry = await topicQuery.joinTopic(uid, tid);
+
+    if (entry) {
+      console.log(`User ${uid} joined topic ${tid}`);
+    }
+
+    return res.redirect(`/topic/${tid}/public`);
+  } catch (error) {
+    if (error.code === "23505") {
+      console.log("User is already a member of this topic.");
+      return res.redirect(`/topic/${tid}/public`);
+    }
+
+    console.error("Error joining topic:", error);
+    return res.render("error", {
+      message: "Could not join topic. Please try again.",
+    });
+  }
+}
 module.exports = {
   renderCreateTopicForm,
   createTopic,
@@ -420,4 +451,5 @@ module.exports = {
   requestJoin,
   approveRequest,
   denyRequest,
+  joinTopic,
 };

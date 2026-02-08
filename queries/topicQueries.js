@@ -311,6 +311,16 @@ async function denyReq(requestId) {
   return rowCount === 1;
 }
 
+async function joinTopic(uid, tid) {
+  const query = `
+  INSERT INTO topics_users(user_id, topic_id)
+  VALUES ($1, $2)
+  `;
+
+  const { rowCount } = await db.query(query, [uid, tid]);
+  return rowCount === 1;
+}
+
 module.exports = {
   createNewTopic,
   getAllPublicTopics,
@@ -325,6 +335,7 @@ module.exports = {
   insertJoinReq,
   approveReq,
   denyReq,
+  joinTopic,
 };
 
 // SELECT

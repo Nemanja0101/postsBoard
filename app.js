@@ -3,6 +3,7 @@ const path = require("node:path");
 const passport = require("./config/passport");
 const sessionMiddleware = require("./config/session");
 const authMiddleware = require("./middleware/auth");
+const postRouter = require("./routes/postRouter");
 
 //routes
 const indexRouter = require("./routes/indexRouter");
@@ -27,6 +28,7 @@ app.use((req, res, next) => {
 
 app.use("/", indexRouter);
 app.use("/topic", authMiddleware.authenticatedGuard, topicRouter);
+app.use("/post", authMiddleware.authenticatedGuard, postRouter);
 
 app.listen(3000, (error) => {
   if (error) {

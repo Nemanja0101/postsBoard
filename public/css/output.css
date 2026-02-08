@@ -420,6 +420,9 @@
   .w-96 {
     width: calc(var(--spacing) * 96);
   }
+  .w-240 {
+    width: calc(var(--spacing) * 240);
+  }
   .w-full {
     width: 100%;
   }
@@ -544,6 +547,10 @@
     border-width: 2px;
   }
   .border-t {
+    border-top-style: var(--tw-border-style);
+    border-top-width: 1px;
+  }
+  .border-t-1 {
     border-top-style: var(--tw-border-style);
     border-top-width: 1px;
   }
