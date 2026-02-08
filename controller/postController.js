@@ -1,5 +1,7 @@
 const { body, matchedData, validationResult } = require("express-validator");
 const postQuery = require("../queries/postQueries");
+const topicQuery = require("../queries/topicQueries");
+const { post } = require("../routes/postRouter");
 
 const postValidation = [
   body("title")
@@ -41,9 +43,6 @@ createPost = [
     const { title, content } = matchedData(req);
     const uid = req.user?.id;
 
-    console.log("creating a post with:");
-    console.log(title, content, tid, uid, type);
-
     try {
       // check if user is a member of the current topic
       const isMember = await postQuery.userIsMember(tid, uid);
@@ -61,8 +60,6 @@ createPost = [
         });
       }
     } catch (error) {
-      console.log(error);
-
       return res.render("createPost", {
         errors: [{ msg: "Database error. Please try again later." }],
         topicId: tid,
@@ -72,4 +69,58 @@ createPost = [
   },
 ];
 
-module.exports = { renderCreatePost, createPost };
+async function deletePostAdmin(req, res) {
+  const { postId, topicId } = req.body;
+  const currentUserId = req.user.id;
+
+  if (!currentUserId) {
+    return res.status(401).render("adminPanel", {
+      errors: ["Log in required"],
+    });
+  }
+
+  try {
+    const isAdmin = await topicQuery.userIsAdmin(topicId, currentUserId);
+
+    if (!isAdmin) {
+      return res.status(403).render("adminPanel", {
+        topic: null,
+        errors: ["You are not an admin for this topic!"],
+      });
+    }
+
+    await postQuery.deletePost(postId, topicId);
+
+    const data = await topicQuery.getSingleTopicWithDataAdmin(
+      topicId,
+      currentUserId,
+    );
+
+    if (!data) {
+      return res.status(404).render("adminPanel", {
+        topic: null,
+        errors: ["Topic not found"],
+      });
+    }
+
+    const topic = {
+      id: data.id,
+      name: data.name,
+      type: data.type,
+      posts: data.posts,
+      members: data.members,
+      requests: data.requests,
+    };
+    console.log("HELLO");
+    console.log(topic);
+
+    res.render("adminPanel", { topic: topic, errors: [] });
+  } catch (error) {
+    return res.status(403).render("adminPanel", {
+      topic: null,
+      errors: ["Internal server error!"],
+    });
+  }
+}
+
+module.exports = { renderCreatePost, createPost, deletePostAdmin };

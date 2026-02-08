@@ -8,14 +8,16 @@
 </head>
 <body class="bg-zinc-900 text-white min-h-screen pt-12">
 
-    <% if(!locals.topic) { %>
+    <% if(!locals.topic || locals.topic === null) { %>
         <div class="text-amber-500 text-6xl font-bold text-center">No topic selected</div>
     <% } else { %>
 
+
+
         <header class="text-center mb-10">
-            <h1 class="text-amber-500 text-6xl font-bold"><%= topic.tname %></h1>
+            <h1 class="text-amber-500 text-6xl font-bold"><%= topic.name %></h1>
             <p class="text-gray-400 mt-2 uppercase tracking-widest text-sm">
-                Admin Control Panel • <span class="text-amber-600"><%= topic.ttype %></span>
+                Admin Control Panel • <span class="text-amber-600"><%= topic.type %></span>
             </p>
         </header>
 
@@ -67,12 +69,16 @@
                                     <p class="text-[12px] text-gray-400  tracking-tight font-bold">Author: <%= post.author_username %></p>
 
                                     <p class="text-[10px] text-gray-500 mt-3 uppercase tracking-tighter">
-                                        Created: <%= new Date(post.post_created_at).toLocaleString() %>
+                                        Created: <%= new Date(post.created_at).toLocaleString() %>
                                     </p>
                                 </div>
-                                <button class="text-gray-500 hover:text-red-500 transition-colors">
+                                <form action="/post/adminDeletePost" method="POST">
+                                <button class="text-gray-500 hover:text-red-500 transition-colors hover:cursor-pointer" type="submit">
                                     Delete
                                 </button>
+                                   <input type="hidden" name="postId" value="<%= post.id %>">
+                                   <input type="hidden" name="topicId" value="<%= topic.id %>">
+                                </form>
                             </div>
                         </article>
                     <% }) %>
@@ -89,7 +95,16 @@
                                 <p class="text-[10px] uppercase text-amber-600 font-bold"><%= member.status %></p>
                             </div>
                             <% if(member.status !== 'admin') { %>
-                                <button class="text-gray-500 hover:text-amber-500 text-xs">Edit</button>
+                            <form action="/topic/admin/promote-member" method="POST" 
+                                onsubmit="return confirm('Are you sure you want to make <%= member.username %> an admin? This cannot be undone')">
+    
+                                <input type="hidden" name="targetUserId" value="<%= member.id %>">
+                                <input type="hidden" name="topicId" value="<%= topic.id %>">
+    
+                                <button type="submit" class="text-gray-500 hover:text-amber-500 text-xs hover:cursor-pointer transition-colors">
+                                Make Admin
+                                </button>
+                            </form>
                             <% } %>
                         </div>
                     <% }) %>

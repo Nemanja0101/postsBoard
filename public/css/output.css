@@ -334,6 +334,9 @@
   .inline-block {
     display: inline-block;
   }
+  .table {
+    display: table;
+  }
   .max-h-80 {
     max-height: calc(var(--spacing) * 80);
   }

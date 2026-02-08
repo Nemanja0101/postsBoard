@@ -24,4 +24,10 @@ async function createPost(uid, tid, title, content) {
   return rows[0];
 }
 
-module.exports = { userIsMember, createPost };
+async function deletePost(pid, tid) {
+  const SQL = `DELETE FROM posts WHERE id = $1 AND topic_id = $2`;
+
+  db.query(SQL, [pid, tid]);
+}
+
+module.exports = { userIsMember, createPost, deletePost };

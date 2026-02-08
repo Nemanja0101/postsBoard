@@ -280,8 +280,6 @@ async function getSingleTopicWithDataAdmin(topicId, userId) {
     [topicId, userId],
   );
 
-  console.log(JSON.stringify(data.rows[0], null, 2));
-
   return data.rows[0];
 }
 
@@ -363,6 +361,18 @@ async function joinTopic(uid, tid) {
   return rowCount === 1;
 }
 
+async function promoteMember(topicId, targetUserId) {
+  const { rows } = await db.query(
+    `UPDATE topics_users 
+     SET user_status = 'admin' 
+     WHERE topic_id = $1 AND user_id = $2
+     RETURNING *`,
+    [topicId, targetUserId],
+  );
+
+  return rows[0] || null;
+}
+
 module.exports = {
   createNewTopic,
   getAllPublicTopics,
@@ -378,6 +388,7 @@ module.exports = {
   approveReq,
   denyReq,
   joinTopic,
+  promoteMember,
 };
 
 // SELECT

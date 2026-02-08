@@ -126,8 +126,6 @@ async function renderSingleTopic(req, res) {
         return res.status(404).render("topic", { errors: ["Topic not found"] });
       }
 
-      console.log(data);
-
       topic = {
         id: data.id,
         name: data.name,
@@ -142,8 +140,6 @@ async function renderSingleTopic(req, res) {
       if (!data || data.length === 0) {
         return res.status(404).render("topic", { errors: ["Topic not found"] });
       }
-
-      console.log(data);
 
       if (data.current_user_status) {
         // user is a member
@@ -211,8 +207,8 @@ async function renderAdminPanel(req, res) {
 
   const topic = {
     id: data.id,
-    tname: data.name,
-    ttype: data.type,
+    name: data.name,
+    type: data.type,
     posts: data.posts,
     members: data.members,
     requests: data.requests,
@@ -229,9 +225,6 @@ async function requestJoin(req, res) {
     await topicQuery.insertJoinReq(topicId, currentUserId);
     return res.redirect(`/topics`);
   } catch (error) {
-    console.log("Logging an error:");
-    console.log(error);
-
     if (error.code === "23505") {
       return res.status(400).render("topic.ejs", {
         topic: null,
@@ -371,14 +364,9 @@ async function joinTopic(req, res) {
   try {
     const entry = await topicQuery.joinTopic(uid, tid);
 
-    if (entry) {
-      console.log(`User ${uid} joined topic ${tid}`);
-    }
-
     return res.redirect(`/topic/${tid}/public`);
   } catch (error) {
     if (error.code === "23505") {
-      console.log("User is already a member of this topic.");
       return res.redirect(`/topic/${tid}/public`);
     }
 
@@ -388,6 +376,32 @@ async function joinTopic(req, res) {
     });
   }
 }
+
+async function promoteMemberToAdmin(req, res) {
+  const { targetUserId, topicId } = req.body;
+  const currentUserId = req.user.id;
+
+  try {
+    const requesterIsAdmin = await topicQuery.userIsAdmin(
+      topicId,
+      currentUserId,
+    );
+
+    if (!requesterIsAdmin) {
+      return res
+        .status(403)
+        .send("Unauthorized: Only admins can promote members.");
+    }
+
+    const data = await topicQuery.promoteMember(topicId, targetUserId);
+
+    res.redirect(`/topic/admin/${topicId}`);
+  } catch (error) {
+    console.error("Promotion Error:", error);
+    res.status(500).send("Internal Server Error");
+  }
+}
+
 module.exports = {
   renderCreateTopicForm,
   createTopic,
@@ -400,4 +414,5 @@ module.exports = {
   approveRequest,
   denyRequest,
   joinTopic,
+  promoteMemberToAdmin,
 };

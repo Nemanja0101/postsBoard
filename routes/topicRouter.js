@@ -4,6 +4,10 @@ const topicController = require("../controller/topicController");
 const topicsRouter = Router();
 
 topicsRouter.post("/join", topicController.joinTopic);
+topicsRouter.post(
+  "/admin/promote-member",
+  topicController.promoteMemberToAdmin,
+);
 
 topicsRouter.get("/create", topicController.renderCreateTopicForm);
 topicsRouter.post("/create", topicController.createTopic);
