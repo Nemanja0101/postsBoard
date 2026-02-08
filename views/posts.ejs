@@ -16,8 +16,9 @@
         <div class="grid grid-cols-4 gap-4 w-full px-2">
             <% publicTopics.slice(0,4).forEach(t => { %>
             <div aria-label="conversation card"
-                class="text-center bg-gray-800 rounded-lg px-3 py-5 flex flex-col gap-4">
-                <h3 class="text-slate-300 text-xl font-bold"><%= t.name %></h3>
+                class="text-center bg-gray-800 rounded-lg px-3 py-5 flex flex-col gap-4 
+                border-t-4 border-amber-500">
+                <h3 class="text-amber-100  text-xl font-bold"><%= t.name %></h3>
 
                 <% const posts = displayTopics[t.id] || []; %>
 
@@ -64,11 +65,12 @@
                 <div class="grid grid-cols-4 gap-4 w-full px-6">
                     <% privateTopics.forEach(t => { %>
                         <a 
-                        href="/topic/<%= t.id %>"
+                        href="/topic/<%= t.id %>/<%= t.type %>"
                         class="bg-gray-800 rounded-lg px-4 py-3 
                                 hover:bg-gray-700 transition
-                                border border-gray-700
-                                text-slate-200 font-medium"
+                                border-b-4 border-amber-500
+                                text-slate-200 font-medium
+                                "
                         >
                             <%= t.name %>
                         </a>

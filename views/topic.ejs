@@ -48,51 +48,60 @@
 
     <div class="text-amber-500 text-6xl font-bold text-center"><%= topic.name %></div>
     
-    <% if(topic.topicType === 'public' || (topic.topicType === 'private' && (topic.userMembership === 'admin' || topic.userMembership ==='member'))){  %>
 
-    <div class="grid grid-cols-6 gap-3 p-8">
+    <% if(topic.type === 'public' || (topic.type === 'private' && (topic.userMembership === 'admin' || topic.userMembership ==='member'))){  %>
+
+    <div class="grid grid-cols-6 gap-6 p-8">
 
 
-      <section aria-label="user controls" class="bg-gray-800 rounded-lg py-7 px-3 flex flex-col gap-2">
+      <section aria-label="user controls" 
+      class="bg-gray-800 rounded-lg 
+      py-7 px-3 flex flex-col gap-2
+      border-t-4 border-amber-500">
 
-          <a href="/post/new/<%=topic.id %>/<%=topic.type%>" class="btn-link">Make a new post</a>
+        <h2 class="text-amber-500 font-bold text-xl">Controls</h2>
+
+          <a href="/post/new/<%=topic.id %>/<%=topic.type%>" class="bg-gray-700 hover:bg-gray-600 py-4 px-3 rounded-md font-bold text-amber-100">New post</a>
 
           <% if(topic.userMembership === null && topic.type === 'public') { %>
 
             <form action="/topic/join" method="post" class="w-full">
-              <button type="submit" class="bg-gray-700 hover:bg-slate-900
-               text-white font-bold 
-               text-2xl py-3 px-5 rounded text-center w-full hover:cursor-pointer">Join topic</button>
+              <button type="submit" class="bg-gray-700 hover:bg-gray-600 py-4 px-3 rounded-md font-bold text-amber-100">Join topic</button>
               <input type="hidden" name="topicId" id="topicId" value="<%= topic.id %>">
             </form>
 
           <% } %>
 
           <% if(topic.userMembership === 'admin') { %>
-            <a href="/topic/admin/<%= topic.id %>" class="btn-link">Admin panel</a>
+            <a href="/topic/admin/<%= topic.id %>" class="bg-gray-700 hover:bg-gray-600 py-4 px-3 rounded-md font-bold text-amber-100">Admin panel</a>
           <% } %>
       </section>
 
       <section class="bg-gray-800 rounded-lg py-7 px-6 flex flex-col gap-4 col-span-4 col-start-2 col-end-6">
 
+        <h2 class="text-amber-500 font-bold text-xl">Posts</h2>
+
         <% topic.posts.forEach(post => { %>
 
           <article aria-label="single post" class="bg-gray-700 rounded-lg py-2 px-3">
-            <p class="font-bold text-xl"><%= post.title %></p>
-            <p class="py-2"><%= post.content %></p>
-            <p>Created:  <%= new Date(post.created_at).toLocaleString() %></p>
+            <p class="font-bold text-xl text-amber-100"><%= post.title %></p>
+            <p class="text-gray-300 text-sm mt-1 line-clamp-2"><%= post.content %></p>
+            <p class="text-[12px] text-gray-400  tracking-tight font-bold">Author: <%= post.author_username %></p>
+            <p class="text-[10px] text-gray-500 mt-3 uppercase tracking-tighter">Created:  <%= new Date(post.created_at).toLocaleString() %></p>
           </article>
           
         <% }) %>
       </section>
 
-      <section class="col-span-1 bg-gray-800 py-2 px-5 flex flex-col gap-2">
+      <section class="col-span-1 bg-gray-800  py-7 rounded-lg px-5 flex flex-col gap-2 border-b-4 border-amber-500">
         <h1 class="text-amber-500 font-bold">Members</h1>
         <% topic.members.forEach(member => { %>
 
-          <article aria-label="one member" class="bg-gray-700 rounded-lg py-2 px-3">
-           <p><%= member.username %></p>
-           <p class="text-sm text-gray-400"><%= member.status %></p>
+          <article aria-label="one member" 
+          class="bg-gray-700 rounded-lg py-2 px-3 
+          flex justify-between flex-col items-start border border-gray-600">
+           <p class="text-sm font-medium"><%= member.username %></p>
+           <p class="text-[10px] uppercase text-amber-600 font-bold"><%= member.status %></p>
           </article>
         <% }) %>
 
@@ -105,7 +114,7 @@
           <p class="text-amber-500 font-bold mb-3">You don't have access to this topic!</p>
 
           <form action="/topic/joinRequest/<%= topic.id %>" method="post">
-            <button type="submit" class="btn-link hover:cursor-pointer" onclick="alert('Request sent! Waiting for an admin to approve your request')">Send a request to join</button>
+            <button type="submit" class="btn-link hover:cursor-pointer" onsubmit="this.querySelector('button').disabled = true;" onclick="alert('Request sent! Waiting for an admin to approve your request')" >Send a request to join</button>
           </form>
        </div>
         <%} %>

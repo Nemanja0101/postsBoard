@@ -77,86 +77,123 @@ async function searchPrivateTopics(name) {
 
   return rows;
 }
-
 async function getSingleTopicWithData(topicId, userId) {
   const { rows } = await db.query(
-    `SELECT 
-      t.id,
-      t.name, 
-      t.type,
-      tu.user_status,
-
-      p.id AS post_id,
-      p.title AS post_title,
-      p.content AS post_content,
-      p.created_at AS post_created_at,
-      p.author_id AS post_author_id,
-
-      member_u.id AS member_id,
-      member_u.username AS member_username,
-      member_tu.user_status AS member_status
-
-    FROM topics t 
-    LEFT JOIN topics_users tu 
-      ON t.id = tu.topic_id AND tu.user_id = $2
-    LEFT JOIN posts p 
-      ON t.id = p.topic_id
-    LEFT JOIN topics_users member_tu 
-      ON t.id = member_tu.topic_id
-    LEFT JOIN users member_u 
-      ON member_tu.user_id = member_u.id
-    WHERE t.id = $1`,
-    [topicId, userId],
-  );
-
-  // console.log("Public fetch (raw rows):", rows.length);
-  // console.log(rows);
-
-  return rows;
-}
-
-async function getPrivateSingleTopic(topicId, userId) {
-  const { rows } = await db.query(
     `
+    WITH topic_posts AS (
+      SELECT 
+        posts.topic_id, 
+        json_agg(json_build_object(
+          'id', posts.id,
+          'title', posts.title,
+          'content', posts.content,
+          'created_at', posts.created_at,
+          'author_id', posts.author_id,
+          'author_username', u.username
+        ) ORDER BY posts.created_at DESC) AS posts
+      FROM posts
+      JOIN users u ON posts.author_id = u.id 
+      WHERE posts.topic_id = $1
+      GROUP BY posts.topic_id
+    ),
+    topic_members AS (
+      SELECT 
+        tu.topic_id, 
+        json_agg(json_build_object(
+          'id', u.id,
+          'username', u.username,
+          'status', tu.user_status
+        )) AS members
+      FROM topics_users tu
+      JOIN users u ON u.id = tu.user_id
+      WHERE tu.topic_id = $1
+      GROUP BY tu.topic_id
+    )
     SELECT
       t.id,
       t.name,
       t.type,
-      tu.user_status, 
-
-      CASE WHEN tu.user_id IS NOT NULL THEN p.id ELSE NULL END AS post_id,
-      CASE WHEN tu.user_id IS NOT NULL THEN p.title ELSE NULL END AS post_title,
-      CASE WHEN tu.user_id IS NOT NULL THEN p.content ELSE NULL END AS post_content,
-      CASE WHEN tu.user_id IS NOT NULL THEN p.created_at ELSE NULL END AS post_created_at,
-      CASE WHEN tu.user_id IS NOT NULL THEN p.author_id ELSE NULL END AS post_author_id,
-
-      CASE WHEN tu.user_id IS NOT NULL THEN member_u.id ELSE NULL END AS member_id,
-      CASE WHEN tu.user_id IS NOT NULL THEN member_u.username ELSE NULL END AS member_username,
-      CASE WHEN tu.user_id IS NOT NULL THEN member_tu.user_status ELSE NULL END AS member_status
-
+      tu.user_status AS current_user_status,
+      COALESCE(tp.posts, '[]'::json) AS posts,
+      COALESCE(tm.members, '[]'::json) AS members
     FROM topics t
-
-    LEFT JOIN topics_users tu
-      ON tu.topic_id = t.id
-      AND tu.user_id = $2    
-
-    LEFT JOIN posts p
-      ON p.topic_id = t.id
-
-    LEFT JOIN topics_users member_tu
-      ON member_tu.topic_id = t.id
-    
-    LEFT JOIN users member_u
-      ON member_u.id = member_tu.user_id
-
+    -- Get the status for the specific user requesting the page
+    LEFT JOIN topics_users tu 
+      ON t.id = tu.topic_id AND tu.user_id = $2
+    -- Join the aggregated JSON data
+    LEFT JOIN topic_posts tp ON tp.topic_id = t.id
+    LEFT JOIN topic_members tm ON tm.topic_id = t.id
     WHERE t.id = $1;
     `,
     [topicId, userId],
   );
 
-  // console.log("private fetch (raw rows):", rows.length);
-  // console.log(rows);
-  return rows;
+  // Since we are getting a single topic, we return rows[0]
+  // If the topic doesn't exist, rows[0] will be undefined
+  return rows[0];
+}
+async function getPrivateSingleTopic(topicId, userId) {
+  const { rows } = await db.query(
+    `
+  WITH topic_posts AS (
+      SELECT 
+        posts.topic_id, 
+        json_agg(json_build_object(
+          'id', posts.id,
+          'title', posts.title,
+          'content', posts.content,
+          'created_at', posts.created_at,
+          'author_id', posts.author_id,
+          'author_username', u.username
+        ) ORDER BY posts.created_at DESC) AS posts
+      FROM posts
+      JOIN users u ON posts.author_id = u.id 
+      WHERE posts.topic_id = $1
+      GROUP BY posts.topic_id
+    ),
+    topic_members AS (
+      SELECT 
+        tu.topic_id, 
+        json_agg(json_build_object(
+          'id', u.id,
+          'username', u.username,
+          'status', tu.user_status
+        )) AS members
+      FROM topics_users tu
+      JOIN users u ON u.id = tu.user_id
+      WHERE tu.topic_id = $1
+      GROUP BY tu.topic_id
+    )
+    SELECT
+      t.id,
+      t.name,
+      t.type,
+      tu.user_status AS current_user_status,
+      
+      -- If tu.user_id is NULL, the user isn't a member, so we return an empty arrsay []
+      -- Otherwise, we return the aggregated posts (or [] if no posts exist)
+      CASE 
+        WHEN tu.user_id IS NOT NULL THEN COALESCE(tp.posts, '[]'::json)
+        ELSE '[]'::json 
+      END AS posts,
+
+      CASE 
+        WHEN tu.user_id IS NOT NULL THEN COALESCE(tm.members, '[]'::json)
+        ELSE '[]'::json 
+      END AS members
+
+    FROM topics t
+    -- We check if the requesting user ($2) is a member
+    LEFT JOIN topics_users tu 
+      ON t.id = tu.topic_id AND tu.user_id = $2
+    LEFT JOIN topic_posts tp ON tp.topic_id = t.id
+    LEFT JOIN topic_members tm ON tm.topic_id = t.id
+    WHERE t.id = $1;
+    `,
+    [topicId, userId],
+  );
+
+  return rows[0];
 }
 
 async function userIsAdmin(tid, uid) {
@@ -186,15 +223,20 @@ async function getSingleTopicWithDataAdmin(topicId, userId) {
   const data = await db.query(
     `
     WITH topic_posts AS (
-      SELECT topic_id, json_agg(json_build_object(
-        'id', id,
-        'title', title,
-        'content', content,
-        'created_at', created_at
-      ) ORDER BY created_at DESC) AS posts
+      SELECT 
+        posts.topic_id, 
+        json_agg(json_build_object(
+          'id', posts.id,
+          'title', posts.title,
+          'content', posts.content,
+          'created_at', posts.created_at,
+          'author_id', posts.author_id,
+          'author_username', u.username
+        ) ORDER BY posts.created_at DESC) AS posts
       FROM posts
-      WHERE topic_id = $1
-      GROUP BY topic_id
+      JOIN users u ON posts.author_id = u.id 
+      WHERE posts.topic_id = $1
+      GROUP BY posts.topic_id
     ),
     topic_members AS (
       SELECT tu.topic_id, json_agg(json_build_object(

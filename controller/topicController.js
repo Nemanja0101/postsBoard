@@ -90,8 +90,6 @@ function renderTopicsSearchPage(req, res) {
   res.render("searchTopic", { errors: [], mode: mode });
 }
 
-// function createTopic(req, res) {};
-
 async function searchTopics(req, res) {
   const { name, private: privateParam } = req.query;
 
@@ -117,9 +115,6 @@ async function renderSingleTopic(req, res) {
     let topic;
     let userIsMember;
 
-    const posts = {};
-    const members = {};
-
     if (topicType === "private" && !currentUserId) {
       return res.status(401).render("topic", { errors: ["Login required"] });
     }
@@ -131,35 +126,15 @@ async function renderSingleTopic(req, res) {
         return res.status(404).render("topic", { errors: ["Topic not found"] });
       }
 
-      for (const obj of data) {
-        if (obj.post_id && !posts[obj.post_id]) {
-          posts[obj.post_id] = {
-            id: obj.post_id,
-            title: obj.post_title,
-            content: obj.post_content,
-            post_created_at: obj.post_created_at,
-          };
-        }
-
-        if (obj.member_id && !members[obj.member_id]) {
-          members[obj.member_id] = {
-            id: obj.member_id,
-            username: obj.member_username,
-            status: obj.member_status,
-          };
-        }
-      }
-
-      const newposts = Object.values(posts).reverse();
+      console.log(data);
 
       topic = {
-        id: data[0].id,
-        name: data[0].name,
-        type: data[0].type,
-        posts: newposts,
-        members: Object.values(members),
-        userMembership: data[0].user_status,
-        topicType: data[0].type,
+        id: data.id,
+        name: data.name,
+        type: data.type,
+        posts: data.posts,
+        members: data.members,
+        userMembership: data.current_user_status,
       };
     } else if (topicType === "private") {
       data = await topicQuery.getPrivateSingleTopic(topicId, currentUserId);
@@ -168,56 +143,29 @@ async function renderSingleTopic(req, res) {
         return res.status(404).render("topic", { errors: ["Topic not found"] });
       }
 
-      if (data[0].user_status) {
+      console.log(data);
+
+      if (data.current_user_status) {
         // user is a member
-
-        for (const obj of data) {
-          if (obj.post_id && !posts[obj.post_id]) {
-            posts[obj.post_id] = {
-              id: obj.post_id,
-              title: obj.post_title,
-              content: obj.post_content,
-              post_created_at: obj.post_created_at,
-            };
-          }
-
-          if (obj.member_id && !members[obj.member_id]) {
-            members[obj.member_id] = {
-              id: obj.member_id,
-              username: obj.member_username,
-              status: obj.member_status,
-            };
-          }
-        }
-
-        const newposts = Object.values(posts).reverse();
-
-        console.log("reverseD:");
-        console.log(newposts);
-
         topic = {
-          id: data[0].id,
-          name: data[0].name,
-          type: data[0].type,
-          posts: newposts,
-          members: Object.values(members),
-          userMembership: data[0].user_status,
-          topicType: data[0].type,
+          id: data.id,
+          name: data.name,
+          type: data.type,
+          posts: data.posts,
+          members: data.members,
+          userMembership: data.current_user_status,
         };
       } else {
         topic = {
-          id: data[0].id,
-          name: data[0].name,
-          type: data[0].type,
+          id: data.id,
+          name: data.name,
+          type: data.type,
           posts: [],
           members: [],
-          userMembership: data[0].user_status,
-          topicType: data[0].type,
+          userMembership: data.current_user_status,
         };
       }
     }
-
-    console.log(topic);
 
     res.render("topic", {
       topic: topic,
@@ -276,15 +224,15 @@ async function renderAdminPanel(req, res) {
 async function requestJoin(req, res) {
   const topicId = req.params.topicId;
   const currentUserId = req.user?.id;
-  //insert values
 
   try {
-    const isInserted = await topicQuery.insertJoinReq(topicId, currentUserId);
+    await topicQuery.insertJoinReq(topicId, currentUserId);
+    return res.redirect(`/topics`);
   } catch (error) {
     console.log("Logging an error:");
     console.log(error);
 
-    if ((error.code = "23505")) {
+    if (error.code === "23505") {
       return res.status(400).render("topic.ejs", {
         topic: null,
         errors: [
@@ -293,7 +241,7 @@ async function requestJoin(req, res) {
       });
     }
 
-    console.error("Unexpected error occured:", err);
+    console.error("Unexpected error occured:", error);
     res.status(500).render("adminPanel", {
       topic: null,
       errors: ["Something went wrong. Please try again later."],

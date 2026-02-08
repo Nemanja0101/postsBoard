@@ -64,8 +64,10 @@
                                 <div>
                                     <h3 class="font-bold text-lg text-amber-100"><%= post.title %></h3>
                                     <p class="text-gray-300 text-sm mt-1 line-clamp-2"><%= post.content %></p>
+                                    <p class="text-[12px] text-gray-400  tracking-tight font-bold">Author: <%= post.author_username %></p>
+
                                     <p class="text-[10px] text-gray-500 mt-3 uppercase tracking-tighter">
-                                        Created: <%= new Date(post.created_at).toLocaleString() %>
+                                        Created: <%= new Date(post.post_created_at).toLocaleString() %>
                                     </p>
                                 </div>
                                 <button class="text-gray-500 hover:text-red-500 transition-colors">
